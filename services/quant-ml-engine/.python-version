@@ -1,0 +1,4 @@
+# Tentukan Python interpreter yang digunakan oleh IDE untuk proyek ini.
+# Tunjuk ke venv yang dibuat dengan:
+#   cd services/quant-ml-engine && python -m venv .venv && pip install -r requirements.txt
+3.11

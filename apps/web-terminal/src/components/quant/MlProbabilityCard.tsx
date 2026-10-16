@@ -10,7 +10,6 @@ interface Props {
 
 export default function MlProbabilityCard({ data }: Props) {
   const { bullishProbability, bearishProbability, regime, barriers } = data;
-  const isBull = bullishProbability >= 55;
   const probColor = getProbabilityColor(bullishProbability);
   const regimeLabel = getRegimeLabel(regime);
 

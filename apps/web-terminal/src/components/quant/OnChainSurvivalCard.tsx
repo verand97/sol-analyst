@@ -97,7 +97,7 @@ export default function OnChainSurvivalCard({ data }: Props) {
       </div>
 
       {/* Survival bar */}
-      <div className="w-full h-[4px] bg-[#FF3B30]/25 overflow-hidden">
+      <div className="w-full h-1 bg-[#FF3B30]/25 overflow-hidden">
         <div
           className="h-full transition-all duration-700"
           style={{ width: `${survivalScore}%`, backgroundColor: statusColor }}

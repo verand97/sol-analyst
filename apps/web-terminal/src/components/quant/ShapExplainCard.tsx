@@ -31,7 +31,7 @@ export default function ShapExplainCard({ drivers }: Props) {
               <div className="flex justify-between items-center mb-1.5">
                 <span className="text-[11px] text-[#ECECEF] font-mono leading-tight">{d.featureName}</span>
                 <span
-                  className="text-[11px] font-bold font-mono ml-2 flex-shrink-0"
+                  className="text-[11px] font-bold font-mono ml-2 shrink-0"
                   style={{ color: barColor }}
                 >
                   {isBull ? '+' : ''}{d.impactPct.toFixed(1)}%
@@ -39,7 +39,7 @@ export default function ShapExplainCard({ drivers }: Props) {
               </div>
 
               {/* SHAP bar */}
-              <div className="w-full h-[3px] bg-[#1E222B] rounded-none overflow-hidden">
+              <div className="w-full h-0.75 bg-[#1E222B] rounded-none overflow-hidden">
                 <div
                   className="h-full transition-all duration-500"
                   style={{ width: `${barWidth}%`, backgroundColor: barColor + 'CC' }}

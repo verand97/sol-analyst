@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import QuantTvChart from '@/components/chart/QuantTvChart';
 import MlProbabilityCard from '@/components/quant/MlProbabilityCard';
 import ShapExplainCard from '@/components/quant/ShapExplainCard';
@@ -24,8 +25,9 @@ const KNOWN_TOKENS: Record<string, { symbol: string; name: string; price: number
 
 type AnalysisStatus = 'idle' | 'loading' | 'done' | 'error';
 
-export default function QuantTerminalPage({ params }: { params: Promise<{ address: string }> }) {
-  const { address } = React.use(params);
+export default function QuantTerminalPage() {
+  const routeParams = useParams();
+  const address = (routeParams?.address as string) || 'So11111111111111111111111111111111111111112';
   const tokenMeta = KNOWN_TOKENS[address];
   const basePrice = tokenMeta?.price ?? 100.0;
 

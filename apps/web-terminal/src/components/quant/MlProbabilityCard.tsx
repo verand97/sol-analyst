@@ -45,7 +45,7 @@ export default function MlProbabilityCard({ data }: Props) {
       </div>
 
       {/* Probability bar */}
-      <div className="w-full h-[6px] bg-[#FF3B30]/25 rounded-none overflow-hidden flex mb-4">
+      <div className="w-full h-1.5 bg-[#FF3B30]/25 rounded-none overflow-hidden flex mb-4">
         <div
           className="h-full transition-all duration-700 ease-out"
           style={{ width: `${bullishProbability}%`, backgroundColor: probColor }}

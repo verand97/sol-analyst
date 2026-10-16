@@ -25,7 +25,7 @@ const KNOWN_TOKENS: Record<string, { symbol: string; name: string; price: number
 
 type AnalysisStatus = 'idle' | 'loading' | 'done' | 'error';
 
-export default function QuantTerminalPage() {
+function QuantTerminalContent() {
   const routeParams = useParams();
   const address = (routeParams?.address as string) || 'So11111111111111111111111111111111111111112';
   const tokenMeta = KNOWN_TOKENS[address];
@@ -36,8 +36,7 @@ export default function QuantTerminalPage() {
   const [showBarriers, setShowBarriers] = useState(true);
 
   // Generate candles whenever timeframe or address changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const candles = useMemo(() => generateRealisticCandles(200, basePrice, timeframe), [timeframe, address]);
+  const candles = useMemo(() => generateRealisticCandles(200, basePrice, timeframe, address), [timeframe, address, basePrice]);
 
   const latest = candles[candles.length - 1];
 
@@ -231,5 +230,22 @@ export default function QuantTerminalPage() {
         </aside>
       </div>
     </main>
+  );
+}
+
+export default function QuantTerminalPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="h-screen w-screen bg-[#090A0C] text-[#848E9C] flex items-center justify-center font-mono text-xs tracking-wider">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#38BDF8] animate-ping" />
+            INITIALIZING VORTEX QUANT TERMINAL...
+          </div>
+        </div>
+      }
+    >
+      <QuantTerminalContent />
+    </React.Suspense>
   );
 }

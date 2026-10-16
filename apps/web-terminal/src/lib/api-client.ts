@@ -2,14 +2,23 @@ import { OHLCVCandle, QuantAnalysisResponse, Timeframe } from '@/types/quant';
 
 const QUANT_API_BASE = process.env.NEXT_PUBLIC_QUANT_API_URL ?? 'http://localhost:8000';
 
+function getSeed(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) || 12345;
+}
+
 /**
- * Menghasilkan candle OHLCV sintetis realistis untuk demo / fallback.
- * Dalam produksi: ganti dengan fetch dari DexScreener/Birdeye.
+ * Menghasilkan candle OHLCV sintetis realistis untuk demo / fallback secara deterministik.
  */
 export function generateRealisticCandles(
   count = 200,
   basePrice = 184.5,
-  timeframe: Timeframe = '5m'
+  timeframe: Timeframe = '5m',
+  seedKey = 'solana-default'
 ): OHLCVCandle[] {
   const tfSeconds: Record<Timeframe, number> = {
     '1m': 60,
@@ -19,19 +28,26 @@ export function generateRealisticCandles(
     '4h': 14400,
   };
   const interval = tfSeconds[timeframe] ?? 300;
-  const now = Math.floor(Date.now() / 1000);
+  // Waktu referensi tetap ter-kuantisasi untuk mencegah SSR hydration drift
+  const baseTime = 1718000000;
+
+  let seed = getSeed(seedKey + timeframe);
+  const nextRand = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
 
   let price = basePrice;
   const list: OHLCVCandle[] = [];
 
   for (let i = count; i >= 0; i--) {
-    const move = (Math.random() - 0.48) * (basePrice * 0.008);
+    const move = (nextRand() - 0.485) * (basePrice * 0.008);
     const open = price;
     const close = Math.max(0.000001, +(open + move).toFixed(4));
-    const high = +(Math.max(open, close) + Math.random() * basePrice * 0.004).toFixed(4);
-    const low = +(Math.min(open, close) - Math.random() * basePrice * 0.003).toFixed(4);
-    const volume = Math.floor(15000 + Math.random() * 110000);
-    list.push({ time: now - i * interval, open, high, low, close, volume });
+    const high = +(Math.max(open, close) + nextRand() * basePrice * 0.004).toFixed(4);
+    const low = +(Math.min(open, close) - nextRand() * basePrice * 0.003).toFixed(4);
+    const volume = Math.floor(15000 + nextRand() * 110000);
+    list.push({ time: baseTime + (count - i) * interval, open, high, low, close, volume });
     price = close;
   }
   return list;
@@ -60,7 +76,7 @@ export async function fetchQuantAnalysis(
 }
 
 /**
- * Mock response untuk mode demo (ketika backend tidak tersedia).
+ * Mock response untuk mode demo (deterministik berdasarkan address & timeframe).
  */
 export function getMockQuantResponse(
   address: string,
@@ -68,7 +84,13 @@ export function getMockQuantResponse(
   latestClose: number,
   atr: number = 1.42
 ): QuantAnalysisResponse {
-  const bullishProbability = 64 + Math.random() * 10;
+  let seed = getSeed(address + timeframe);
+  const nextRand = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+
+  const bullishProbability = +(65 + nextRand() * 9).toFixed(1);
   return {
     tokenAddress: address,
     timeframe,

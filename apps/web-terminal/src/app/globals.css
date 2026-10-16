@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+/* ─── VORTEX SOL: Zero AI Slop — Industrial Quant Terminal ─── */
+
+:root {
+  /* Semantic color tokens */
+  --color-canvas: #090A0C;
+  --color-surface: #101216;
+  --color-surface-2: #0D1117;
+  --color-border: #1E222B;
+  --color-border-subtle: #13171E;
+  --color-text: #ECECEF;
+  --color-text-muted: #7D8590;
+  --color-text-dim: #3A3F4C;
+
+  /* Semantic signal colors */
+  --color-bullish: #00C853;
+  --color-bearish: #FF3B30;
+  --color-accent: #38BDF8;
+  --color-warning: #F59E0B;
+
+  /* Typography */
+  --font-mono: 'JetBrains Mono', 'Geist Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+/* ─── Base Reset ─── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Disable rounded corners completely (Zero AI Slop rule) */
+* {
+  border-radius: 2px !important;
+}
+
+/* ─── Scrollbar — minimal dark ─── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2A2F3C;
+}
+
+/* ─── Tabular numbers everywhere ─── */
+.font-mono,
+.font-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "kern" 1;
+}
+
+/* ─── Scrollbar hide utility ─── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Hairline borders ─── */
+.border-hairline {
+  border: 1px solid var(--color-border);
+}
+
+/* ─── Quant data row ─── */
+.quant-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+}
+
+/* ─── Pulse animation for loading states ─── */
+@keyframes quant-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.quant-loading {
+  animation: quant-pulse 1.2s ease-in-out infinite;
+}
+
+/* ─── Scanline overlay ─── */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* ─── Number color utilities ─── */
+.text-bullish { color: var(--color-bullish); }
+.text-bearish { color: var(--color-bearish); }
+.text-accent  { color: var(--color-accent); }
+.text-warning { color: var(--color-warning); }
+.text-muted   { color: var(--color-text-muted); }
+.text-dim     { color: var(--color-text-dim); }
+
+/* ─── SHAP bar animation ─── */
+@keyframes bar-grow {
+  from { width: 0%; }
+  to { width: var(--bar-width); }
+}
+
+.shap-bar {
+  animation: bar-grow 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* ─── Hover state for interactive panels ─── */
+.panel-hover {
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.panel-hover:hover {
+  border-color: #2A2F3C;
+  background-color: #0F131A;
+}

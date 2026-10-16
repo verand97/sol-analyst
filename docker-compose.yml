@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  quant-ml-engine:
+    build: ./services/quant-ml-engine
+    container_name: vortex_quant_ml
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web-terminal:
+    build: ./apps/web-terminal
+    container_name: vortex_web_terminal
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_QUANT_API_URL=http://quant-ml-engine:8000
+    depends_on:
+      - quant-ml-engine
+    restart: unless-stopped

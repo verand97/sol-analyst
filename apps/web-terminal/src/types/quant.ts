@@ -62,3 +62,19 @@ export interface TokenMeta {
   volume24h: number;
   tier: 'Tier-1' | 'Liquid SPL' | 'New Launch' | 'Micro-Cap';
 }
+
+export interface DexTokenInfo {
+  address: string;
+  symbol: string;
+  name: string;
+  priceUsd: number;
+  change24h: number;
+  volume24h: number;
+  liquidity: number;
+  fdv?: number;
+  pairAddress?: string;
+  dexId?: string;
+  quoteSymbol?: string;
+  url?: string;
+  isVerifiedSol?: boolean;
+}

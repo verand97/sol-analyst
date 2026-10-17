@@ -3,6 +3,7 @@
 import React from 'react';
 import { QuantAnalysisResponse } from '@/types/quant';
 import { formatPrice, getProbabilityColor, getRegimeLabel } from '@/lib/formatters';
+import { Target, ShieldAlert, Clock, BarChart3, Scale } from 'lucide-react';
 
 interface Props {
   data: QuantAnalysisResponse['directional'];
@@ -13,68 +14,123 @@ export default function MlProbabilityCard({ data }: Props) {
   const probColor = getProbabilityColor(bullishProbability);
   const regimeLabel = getRegimeLabel(regime);
 
+  const tpDistPct = barriers.entryReference > 0
+    ? ((barriers.targetBarrier - barriers.entryReference) / barriers.entryReference * 100).toFixed(2)
+    : '1.50';
+  const slDistPct = barriers.entryReference > 0
+    ? ((barriers.stopBarrier - barriers.entryReference) / barriers.entryReference * 100).toFixed(2)
+    : '-1.00';
+
   return (
-    <div className="p-4 border-b border-[#1E222B]">
+    <div className="p-4 sm:p-5 border-b border-[#1E2430] bg-[#101318]">
       {/* Header */}
-      <div className="flex justify-between items-center text-[10px] text-[#7D8590] mb-3 tracking-widest">
-        <span>TRIPLE-BARRIER ML PROBABILITY</span>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+          <span className="text-[11px] font-semibold tracking-wider text-[#8B949E] uppercase">
+            Triple-Barrier Directional ML
+          </span>
+        </div>
         <span
-          className="font-mono text-[10px] px-1.5 py-0.5 border"
+          className="text-[11px] font-bold px-2.5 py-0.5 rounded border"
           style={{
             color: probColor,
             borderColor: probColor + '40',
-            backgroundColor: probColor + '0D',
+            backgroundColor: probColor + '12',
           }}
         >
           {regimeLabel}
         </span>
       </div>
 
-      {/* Big probability number */}
-      <div className="flex items-end justify-between mb-3 font-mono">
-        <div>
-          <span className="text-4xl font-bold tracking-tight" style={{ color: probColor }}>
-            {bullishProbability.toFixed(1)}%
-          </span>
-          <span className="text-[11px] text-[#7D8590] ml-2">BULLISH HIT TP FIRST</span>
+      {/* Probability Display Grid */}
+      <div className="bg-[#0D1015] border border-[#171B24] rounded-lg p-3.5 mb-3.5">
+        <div className="flex items-baseline justify-between mb-2.5">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-[#8B949E] font-medium mb-0.5">
+              Target (TP) Probability
+            </div>
+            <div className="text-3xl font-extrabold tracking-tight" style={{ color: probColor }}>
+              {bullishProbability.toFixed(1)}%
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-wider text-[#8B949E] font-medium mb-0.5">
+              Stop (SL) Risk
+            </div>
+            <div className="text-xl font-bold text-[#FF453A]">
+              {bearishProbability.toFixed(1)}%
+            </div>
+          </div>
         </div>
-        <div className="text-right">
-          <span className="text-lg text-[#FF3B30] font-semibold">{bearishProbability.toFixed(1)}%</span>
-          <span className="text-[10px] text-[#7D8590] block">SL HIT FIRST</span>
+
+        {/* Dual-color Progress Bar */}
+        <div className="w-full h-2 bg-[#201518] rounded-full overflow-hidden flex">
+          <div
+            className="h-full transition-all duration-700 ease-out"
+            style={{ width: `${bullishProbability}%`, backgroundColor: probColor }}
+          />
+          <div
+            className="h-full bg-[#FF453A] transition-all duration-700 ease-out"
+            style={{ width: `${bearishProbability}%` }}
+          />
         </div>
       </div>
 
-      {/* Probability bar */}
-      <div className="w-full h-1.5 bg-[#FF3B30]/25 rounded-none overflow-hidden flex mb-4">
-        <div
-          className="h-full transition-all duration-700 ease-out"
-          style={{ width: `${bullishProbability}%`, backgroundColor: probColor }}
-        />
+      {/* Volatility Barriers Grid */}
+      <div className="grid grid-cols-2 gap-3 mb-3.5">
+        {/* Upper Barrier (TP) */}
+        <div className="bg-[#0D1015] border border-[#00E676]/25 rounded-lg p-3">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#00E676] tracking-wider uppercase mb-1">
+            <Target className="w-3 h-3" />
+            <span>Target (+1.5× ATR)</span>
+          </div>
+          <div className="text-base font-bold text-[#00E676]">
+            ${formatPrice(barriers.targetBarrier)}
+          </div>
+          <div className="text-[10px] text-[#8B949E] mt-0.5 font-medium">
+            +{tpDistPct}% from entry
+          </div>
+        </div>
+
+        {/* Lower Barrier (SL) */}
+        <div className="bg-[#0D1015] border border-[#FF453A]/25 rounded-lg p-3">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#FF453A] tracking-wider uppercase mb-1">
+            <ShieldAlert className="w-3 h-3" />
+            <span>Stop (−1.0× ATR)</span>
+          </div>
+          <div className="text-base font-bold text-[#FF453A]">
+            ${formatPrice(barriers.stopBarrier)}
+          </div>
+          <div className="text-[10px] text-[#8B949E] mt-0.5 font-medium">
+            {slDistPct}% from entry
+          </div>
+        </div>
       </div>
 
-      {/* Barrier levels */}
-      <div className="grid grid-cols-2 gap-2 font-mono text-xs">
-        <div className="bg-[#090A0C] p-2.5 border border-[#1E222B]">
-          <span className="text-[#7D8590] text-[9px] block tracking-widest mb-1">UPPER BARRIER (+1.5 ATR)</span>
-          <span className="text-[#00C853] font-bold text-sm">${formatPrice(barriers.targetBarrier)}</span>
-          <span className="text-[#7D8590] text-[9px] block">
-            {((barriers.targetBarrier - barriers.entryReference) / barriers.entryReference * 100).toFixed(2)}% from entry
-          </span>
+      {/* Model Horizon & Risk Parameters */}
+      <div className="grid grid-cols-3 gap-2 text-[10px] text-[#8B949E] bg-[#0D1015]/70 border border-[#171B24] rounded-md p-2.5">
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-3 h-3 text-[#38BDF8]" />
+          <div>
+            <span className="block text-[9px] text-[#4B5565]">HORIZON</span>
+            <strong className="text-[#F0F2F5] font-semibold">{barriers.horizonCandles} Bars</strong>
+          </div>
         </div>
-        <div className="bg-[#090A0C] p-2.5 border border-[#1E222B]">
-          <span className="text-[#7D8590] text-[9px] block tracking-widest mb-1">LOWER BARRIER (−1.0 ATR)</span>
-          <span className="text-[#FF3B30] font-bold text-sm">${formatPrice(barriers.stopBarrier)}</span>
-          <span className="text-[#7D8590] text-[9px] block">
-            {((barriers.stopBarrier - barriers.entryReference) / barriers.entryReference * 100).toFixed(2)}% from entry
-          </span>
+        <div className="flex items-center gap-1.5">
+          <BarChart3 className="w-3 h-3 text-[#38BDF8]" />
+          <div>
+            <span className="block text-[9px] text-[#4B5565]">ATR(14)</span>
+            <strong className="text-[#F0F2F5] font-semibold">${formatPrice(barriers.atrValue)}</strong>
+          </div>
         </div>
-      </div>
-
-      {/* Setup info */}
-      <div className="mt-3 flex justify-between text-[10px] font-mono text-[#7D8590]">
-        <span>ATR(14): <strong className="text-white">${formatPrice(barriers.atrValue)}</strong></span>
-        <span>HORIZON: <strong className="text-white">{barriers.horizonCandles} bars</strong></span>
-        <span>R:R <strong className="text-[#38BDF8]">{barriers.rewardRiskRatio}x</strong></span>
+        <div className="flex items-center gap-1.5">
+          <Scale className="w-3 h-3 text-[#38BDF8]" />
+          <div>
+            <span className="block text-[9px] text-[#4B5565]">REWARD/RISK</span>
+            <strong className="text-[#38BDF8] font-semibold">{barriers.rewardRiskRatio}x</strong>
+          </div>
+        </div>
       </div>
     </div>
   );

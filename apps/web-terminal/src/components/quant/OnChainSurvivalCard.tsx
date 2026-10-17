@@ -3,7 +3,7 @@
 import React from 'react';
 import { QuantAnalysisResponse } from '@/types/quant';
 import { getSecurityStatusColor } from '@/lib/formatters';
-import { ShieldCheck, AlertTriangle, Flame, Users, Crosshair, Lock } from 'lucide-react';
+import { ShieldCheck, Flame, Users, Crosshair, Lock } from 'lucide-react';
 
 interface Props {
   data: QuantAnalysisResponse['onchainSurvival'];

@@ -22,6 +22,19 @@ function getSeed(str: string): number {
   return Math.abs(hash) || 12345;
 }
 
+interface DexPairResponse {
+  baseToken?: { address?: string; name?: string; symbol?: string };
+  quoteToken?: { address?: string; name?: string; symbol?: string };
+  priceUsd?: string;
+  priceChange?: { h24?: number };
+  volume?: { h24?: number };
+  liquidity?: { usd?: number };
+  fdv?: number;
+  pairAddress?: string;
+  dexId?: string;
+  url?: string;
+}
+
 /**
  * Mengambil live token metadata & harga langsung dari DexScreener Solana DEX API.
  */
@@ -40,7 +53,7 @@ export async function fetchTokenDexData(address: string): Promise<DexTokenInfo> 
     }
 
     const data = await res.json();
-    const pairs: Array<Record<string, any>> = data.pairs || [];
+    const pairs: DexPairResponse[] = data.pairs || [];
 
     if (pairs.length > 0) {
       // Prioritize pairs with USDC / USDT / SOL quote and highest liquidity

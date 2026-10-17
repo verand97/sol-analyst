@@ -162,5 +162,5 @@ export default function QuantTvChart({ data, targetBarrier, stopBarrier, vwapDat
     };
   }, [data, targetBarrier, stopBarrier, vwapData]);
 
-  return <div ref={containerRef} className="w-full h-full min-h-[380px]" />;
+  return <div ref={containerRef} className="w-full h-full min-h-95" />;
 }

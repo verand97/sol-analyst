@@ -26,10 +26,6 @@ import {
   TrendingUp,
   TrendingDown,
   ShieldCheck,
-  Activity,
-  Layers,
-  Sparkles,
-  BarChart2,
 } from 'lucide-react';
 
 type AnalysisStatus = 'idle' | 'loading' | 'done' | 'error';
@@ -49,24 +45,23 @@ function QuantTerminalContent() {
 
   // Live Token Data from DexScreener
   const [tokenData, setTokenData] = useState<DexTokenInfo | null>(null);
-  const [isLoadingToken, setIsLoadingToken] = useState(true);
 
-  // Load real token market data
-  const loadTokenData = useCallback(async (tokenAddr: string) => {
-    setIsLoadingToken(true);
-    try {
-      const data = await fetchTokenDexData(tokenAddr);
-      setTokenData(data);
-    } catch (e) {
-      console.error('Error fetching token data:', e);
-    } finally {
-      setIsLoadingToken(false);
-    }
-  }, []);
-
+  // Load real token market data asynchronously without cascading setState
   useEffect(() => {
-    loadTokenData(address);
-  }, [address, loadTokenData]);
+    let isSubscribed = true;
+    fetchTokenDexData(address)
+      .then((data) => {
+        if (isSubscribed) {
+          setTokenData(data);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching token data:', err);
+      });
+    return () => {
+      isSubscribed = false;
+    };
+  }, [address]);
 
   const livePrice = tokenData?.priceUsd ?? 104.2;
 
@@ -77,31 +72,30 @@ function QuantTerminalContent() {
 
   const latest = candles[candles.length - 1];
 
-  // Quant analysis data (proportional to actual live price)
-  const [quantData, setQuantData] = useState<QuantAnalysisResponse>(() =>
-    getMockQuantResponse(address, timeframe, latest?.close || livePrice)
-  );
+  // Optional custom analysis from backend API call
+  const [customQuantData, setCustomQuantData] = useState<QuantAnalysisResponse | null>(null);
 
-  // Update quant response when price or timeframe changes
-  useEffect(() => {
-    if (latest?.close) {
-      setQuantData(getMockQuantResponse(address, timeframe, latest.close));
+  // Derive quant analysis data directly (prevents effect cascading renders)
+  const quantData = useMemo(() => {
+    if (customQuantData && customQuantData.tokenAddress === address && customQuantData.timeframe === timeframe) {
+      return customQuantData;
     }
-  }, [address, timeframe, latest?.close]);
+    return getMockQuantResponse(address, timeframe, latest?.close || livePrice);
+  }, [customQuantData, address, timeframe, latest?.close, livePrice]);
 
   const runAnalysis = useCallback(async () => {
     setStatus('loading');
-    await loadTokenData(address);
     try {
+      const freshDex = await fetchTokenDexData(address);
+      setTokenData(freshDex);
       const result = await fetchQuantAnalysis(address, timeframe, candles);
-      setQuantData(result);
+      setCustomQuantData(result);
       setStatus('done');
     } catch {
-      // Fallback
-      setQuantData(getMockQuantResponse(address, timeframe, latest.close));
+      setCustomQuantData(getMockQuantResponse(address, timeframe, latest?.close || livePrice));
       setStatus('done');
     }
-  }, [address, timeframe, candles, latest.close, loadTokenData]);
+  }, [address, timeframe, candles, latest?.close, livePrice]);
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(address);
@@ -151,7 +145,7 @@ function QuantTerminalContent() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-bold tracking-wider">
             <span className="text-white text-sm tracking-[0.2em]">VORTEX</span>
-            <span className="text-[#38BDF8] text-sm tracking-[0.2em]">//QUANT</span>
+            <span className="text-[#38BDF8] text-sm tracking-[0.2em]">{"//QUANT"}</span>
           </div>
           <span className="h-4 w-px bg-[#1E2430]" />
           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#9945FF]/10 border border-[#9945FF]/30 text-[#9945FF] text-[10px] font-semibold">
@@ -182,7 +176,7 @@ function QuantTerminalContent() {
         </div>
 
         {/* Search Token CA / Symbol */}
-        <form onSubmit={handleSearchSubmit} className="relative flex items-center min-w-[270px] max-w-[360px]">
+        <form onSubmit={handleSearchSubmit} className="relative flex items-center min-w-67.5 max-w-90">
           <Search className="w-3.5 h-3.5 absolute left-3 text-[#8B949E]" />
           <input
             type="text"
@@ -222,7 +216,7 @@ function QuantTerminalContent() {
         {/* Token Identity */}
         <div className="flex items-center gap-3">
           {/* Avatar Icon */}
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#9945FF] to-[#14F195] p-0.5 flex items-center justify-center font-bold text-black shadow-md">
+          <div className="w-9 h-9 rounded-lg bg-linear-to-br from-[#9945FF] to-[#14F195] p-0.5 flex items-center justify-center font-bold text-black shadow-md">
             <span className="text-sm font-mono">{tokenData?.symbol?.slice(0, 3) || 'SOL'}</span>
           </div>
 
@@ -419,7 +413,7 @@ function QuantTerminalContent() {
           </div>
 
           {/* Interactive Lightweight Chart Container */}
-          <div className="flex-1 min-h-[460px] bg-[#0B0D12] relative">
+          <div className="flex-1 min-h-115 bg-[#0B0D12] relative">
             <QuantTvChart
               data={candles}
               targetBarrier={showBarriers ? directional.barriers.targetBarrier : undefined}

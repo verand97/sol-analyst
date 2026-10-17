@@ -76,7 +76,7 @@ export function BonkLogo({ size = 28, className = '' }: { size?: number; classNa
   return (
     <div
       style={{ width: size, height: size }}
-      className={`rounded-full bg-gradient-to-tr from-[#EA580C] to-[#FBBF24] flex items-center justify-center font-bold text-black shadow ${className}`}
+      className={`rounded-full bg-linear-to-tr from-[#EA580C] to-[#FBBF24] flex items-center justify-center font-bold text-black shadow ${className}`}
     >
       <span style={{ fontSize: size * 0.55 }}>🐕</span>
     </div>
@@ -87,7 +87,7 @@ export function WifLogo({ size = 28, className = '' }: { size?: number; classNam
   return (
     <div
       style={{ width: size, height: size }}
-      className={`rounded-full bg-gradient-to-tr from-[#92400E] to-[#F59E0B] flex items-center justify-center font-bold text-white shadow ${className}`}
+      className={`rounded-full bg-linear-to-tr from-[#92400E] to-[#F59E0B] flex items-center justify-center font-bold text-white shadow ${className}`}
     >
       <span style={{ fontSize: size * 0.55 }}>🎩</span>
     </div>
@@ -127,7 +127,7 @@ export default function TokenLogo({ symbol, size = 28, className = '' }: Props) 
   return (
     <div
       style={{ width: size + 8, height: size + 8 }}
-      className={`rounded-xl bg-gradient-to-br from-[#1E2430] to-[#121620] border border-[#252D3D] flex items-center justify-center font-mono font-bold text-white text-xs ${className}`}
+      className={`rounded-xl bg-linear-to-br from-[#1E2430] to-[#121620] border border-[#252D3D] flex items-center justify-center font-mono font-bold text-white text-xs ${className}`}
     >
       {sym.slice(0, 3)}
     </div>

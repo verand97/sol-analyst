@@ -115,7 +115,7 @@ export default function TokenOverviewCard({
         </div>
 
         <div className="w-full h-1.5 bg-[#171B24] rounded-full overflow-hidden">
-          <div style={{ width: '74%' }} className="h-full bg-gradient-to-r from-[#00E676] to-[#38BDF8]" />
+          <div style={{ width: '74%' }} className="h-full bg-linear-to-r from-[#00E676] to-[#38BDF8]" />
         </div>
       </div>
 

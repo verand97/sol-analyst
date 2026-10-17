@@ -81,7 +81,7 @@ export default function TradingSignalCard({
       </div>
 
       {/* Main Signal Badge */}
-      <div className="bg-gradient-to-r from-[#00E676]/15 via-[#00E676]/5 to-transparent border border-[#00E676]/30 rounded-lg p-3.5 mb-4">
+      <div className="bg-linear-to-r from-[#00E676]/15 via-[#00E676]/5 to-transparent border border-[#00E676]/30 rounded-lg p-3.5 mb-4">
         <div className="flex items-center justify-between">
           <div>
             <span className="text-[10px] font-medium text-[#8B949E] tracking-wider uppercase block mb-0.5">

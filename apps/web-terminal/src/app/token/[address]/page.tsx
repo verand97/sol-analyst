@@ -7,6 +7,10 @@ import MlProbabilityCard from '@/components/quant/MlProbabilityCard';
 import ShapExplainCard from '@/components/quant/ShapExplainCard';
 import BacktestAuditBar from '@/components/quant/BacktestAuditBar';
 import OnChainSurvivalCard from '@/components/quant/OnChainSurvivalCard';
+import TradingSignalCard from '@/components/quant/TradingSignalCard';
+import MarketSentimentCard from '@/components/quant/MarketSentimentCard';
+import TokenOverviewCard from '@/components/quant/TokenOverviewCard';
+import TokenLogo, { SolanaLogo } from '@/components/common/TokenLogo';
 import { DexTokenInfo, QuantAnalysisResponse, Timeframe } from '@/types/quant';
 import {
   generateRealisticCandles,
@@ -29,7 +33,7 @@ import {
 } from 'lucide-react';
 
 type AnalysisStatus = 'idle' | 'loading' | 'done' | 'error';
-type PanelTab = 'all' | 'ml' | 'shap' | 'onchain';
+type PanelTab = 'signal' | 'sentiment' | 'overview' | 'ml' | 'shap' | 'onchain' | 'all';
 
 function QuantTerminalContent() {
   const router = useRouter();
@@ -39,7 +43,7 @@ function QuantTerminalContent() {
   const [timeframe, setTimeframe] = useState<Timeframe>('5m');
   const [status, setStatus] = useState<AnalysisStatus>('done');
   const [showBarriers, setShowBarriers] = useState(true);
-  const [activeTab, setActiveTab] = useState<PanelTab>('all');
+  const [activeTab, setActiveTab] = useState<PanelTab>('signal');
   const [copied, setCopied] = useState(false);
   const [searchInput, setSearchInput] = useState('');
 
@@ -63,7 +67,7 @@ function QuantTerminalContent() {
     };
   }, [address]);
 
-  const livePrice = tokenData?.priceUsd ?? 104.2;
+  const livePrice = tokenData?.priceUsd ?? 104.22;
 
   // Generate candles ending at real live price with current timestamps
   const candles = useMemo(() => {
@@ -125,17 +129,16 @@ function QuantTerminalContent() {
 
   const { directional, onchainSurvival } = quantData;
 
-  const regimeColors: Record<string, string> = {
-    STRONG_BULLISH: '#00E676',
-    BULLISH_EDGE: '#69F0AE',
-    NEUTRAL_NO_EDGE: '#F59E0B',
-    BEARISH_EDGE: '#FF8A80',
-    STRONG_BEARISH: '#FF453A',
-  };
-  const regimeColor = regimeColors[directional.regime] ?? '#8B949E';
-
   const isVerifiedSol = address === VERIFIED_SOL_MINT || tokenData?.isVerifiedSol;
   const isPricePositive = (tokenData?.change24h ?? 0) >= 0;
+
+  // Quick Signal Estimates
+  const atr = directional.barriers.atrValue;
+  const quickBuyLow = +(livePrice - atr * 0.65).toFixed(livePrice < 0.01 ? 6 : 2);
+  const quickBuyHigh = +(livePrice - atr * 0.15).toFixed(livePrice < 0.01 ? 6 : 2);
+  const quickTp1 = +(livePrice + atr * 1.5).toFixed(livePrice < 0.01 ? 6 : 2);
+  const quickTp2 = +(livePrice + atr * 3.2).toFixed(livePrice < 0.01 ? 6 : 2);
+  const quickSl = +(livePrice - atr * 1.25).toFixed(livePrice < 0.01 ? 6 : 2);
 
   return (
     <main className="min-h-screen w-full bg-[#090A0E] text-[#F0F2F5] flex flex-col font-mono select-none antialiased">
@@ -148,13 +151,13 @@ function QuantTerminalContent() {
             <span className="text-[#38BDF8] text-sm tracking-[0.2em]">{"//QUANT"}</span>
           </div>
           <span className="h-4 w-px bg-[#1E2430]" />
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#9945FF]/10 border border-[#9945FF]/30 text-[#9945FF] text-[10px] font-semibold">
-            <span>◎</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#9945FF]/10 border border-[#9945FF]/30 text-[#00FFA3] text-[10px] font-semibold">
+            <SolanaLogo size={12} className="inline mr-1" />
             <span>SOLANA ECOSYSTEM</span>
           </div>
         </div>
 
-        {/* Quick Tokens Switcher */}
+        {/* Quick Tokens Switcher with Icons */}
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
           {Object.entries(KNOWN_SOLANA_TOKENS).map(([mint, meta]) => {
             const isActive = mint === address;
@@ -168,7 +171,11 @@ function QuantTerminalContent() {
                     : 'bg-[#101318] text-[#8B949E] hover:text-[#F0F2F5] hover:bg-[#151922] border border-[#171B24]'
                 }`}
               >
-                <span>{meta.icon}</span>
+                {meta.symbol === 'SOL' ? (
+                  <SolanaLogo size={12} className="inline" />
+                ) : (
+                  <span>{meta.icon}</span>
+                )}
                 <span>{meta.symbol}</span>
               </button>
             );
@@ -211,14 +218,12 @@ function QuantTerminalContent() {
         </div>
       </header>
 
-      {/* ─── TIER 2: ASSET LIVE TICKER & VERIFICATION BAR ─── */}
+      {/* ─── TIER 2: ASSET LIVE TICKER, OFFICIAL LOGO & SIGNAL SUMMARY ─── */}
       <section className="border-b border-[#1E2430] bg-[#121620] px-4 py-3 flex flex-wrap items-center justify-between gap-4">
-        {/* Token Identity */}
+        {/* Token Identity with Official Logo */}
         <div className="flex items-center gap-3">
-          {/* Avatar Icon */}
-          <div className="w-9 h-9 rounded-lg bg-linear-to-br from-[#9945FF] to-[#14F195] p-0.5 flex items-center justify-center font-bold text-black shadow-md">
-            <span className="text-sm font-mono">{tokenData?.symbol?.slice(0, 3) || 'SOL'}</span>
-          </div>
+          {/* Official Vector Logo */}
+          <TokenLogo symbol={tokenData?.symbol || 'SOL'} size={26} />
 
           <div>
             <div className="flex items-center gap-2">
@@ -244,7 +249,7 @@ function QuantTerminalContent() {
               <span>{tokenData?.name || 'Solana'}</span>
               <span className="text-[#3A3F4C]">·</span>
 
-              {/* Contract Address with Copy & External Explorer Link */}
+              {/* Contract Address with Copy & Solscan */}
               <button
                 onClick={handleCopyAddress}
                 className="flex items-center gap-1 hover:text-[#F0F2F5] transition-colors"
@@ -282,6 +287,43 @@ function QuantTerminalContent() {
           </div>
         </div>
 
+        {/* PROMINENT REKOMENDASI BELI / JUAL BANNER IN TICKER */}
+        <div className="bg-[#090A0E] border border-[#00E676]/40 rounded-lg px-3.5 py-1.5 flex flex-wrap items-center gap-3 sm:gap-4 text-xs shadow-inner">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+            <span className="text-[10px] font-bold text-[#8B949E] uppercase">SINYAL:</span>
+            <span className="font-extrabold text-[#00E676]">STRONG BUY</span>
+          </div>
+
+          <span className="h-4 w-px bg-[#1E2430] hidden sm:block" />
+
+          {/* Area Beli */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-[#8B949E]">BELI:</span>
+            <span className="font-bold text-[#00E676]">
+              ${formatPrice(quickBuyLow)} - ${formatPrice(quickBuyHigh)}
+            </span>
+          </div>
+
+          <span className="h-4 w-px bg-[#1E2430] hidden sm:block" />
+
+          {/* Target Jual */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-[#8B949E]">JUAL (TP):</span>
+            <span className="font-bold text-[#38BDF8]">
+              ${formatPrice(quickTp1)} · ${formatPrice(quickTp2)}
+            </span>
+          </div>
+
+          <span className="h-4 w-px bg-[#1E2430] hidden sm:block" />
+
+          {/* Stop Loss */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-[#8B949E]">SL:</span>
+            <span className="font-bold text-[#FF453A]">${formatPrice(quickSl)}</span>
+          </div>
+        </div>
+
         {/* Live Price & Key Metrics */}
         <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs">
           {/* Real-time Price */}
@@ -306,7 +348,7 @@ function QuantTerminalContent() {
                   <TrendingDown className="w-3 h-3 mr-0.5" />
                 )}
                 {isPricePositive ? '+' : ''}
-                {(tokenData?.change24h ?? -1.72).toFixed(2)}%
+                {(tokenData?.change24h ?? -1.68).toFixed(2)}%
               </span>
             </div>
           </div>
@@ -331,7 +373,7 @@ function QuantTerminalContent() {
             </span>
           </div>
 
-          {/* DEX Pool */}
+          {/* Active Pool */}
           <div className="border-l border-[#1E2430] pl-4 sm:pl-6">
             <span className="text-[10px] uppercase text-[#8B949E] block mb-0.5 font-medium">
               Active Pool
@@ -340,27 +382,10 @@ function QuantTerminalContent() {
               {tokenData?.dexId || 'ORCA'} WHIRLPOOL
             </span>
           </div>
-
-          {/* Regime Badge */}
-          <div className="border-l border-[#1E2430] pl-4 sm:pl-6">
-            <span className="text-[10px] uppercase text-[#8B949E] block mb-0.5 font-medium">
-              ML Regime
-            </span>
-            <span
-              className="text-xs font-bold px-2.5 py-0.5 rounded border inline-block"
-              style={{
-                color: regimeColor,
-                borderColor: regimeColor + '40',
-                backgroundColor: regimeColor + '15',
-              }}
-            >
-              {directional.regime.replace(/_/g, ' ')}
-            </span>
-          </div>
         </div>
       </section>
 
-      {/* ─── MAIN WORKSPACE: CHART (LEFT) & QUANT ML PANEL (RIGHT) ─── */}
+      {/* ─── MAIN WORKSPACE: CHART (LEFT) & QUANT INTELLIGENCE (RIGHT) ─── */}
       <div className="flex-1 grid grid-cols-12 min-h-0 bg-[#090A0E]">
         {/* LEFT COLUMN: Chart + Toolbar + Backtest Audit Bar (8 cols) */}
         <section className="col-span-12 xl:col-span-8 border-r border-[#1E2430] flex flex-col min-h-0 bg-[#0B0D12]">
@@ -425,23 +450,26 @@ function QuantTerminalContent() {
           <BacktestAuditBar audit={directional.walkForwardAudit} />
         </section>
 
-        {/* RIGHT COLUMN: Quant Intelligence & SHAP Panel (4 cols) */}
+        {/* RIGHT COLUMN: Actionable Signals, CMC Sentiment & Quant ML (4 cols) */}
         <aside className="col-span-12 xl:col-span-4 bg-[#101318] flex flex-col border-t xl:border-t-0 border-[#1E2430] min-h-0">
-          {/* Panel Tab Navigation (Fixes cramped stacked cards) */}
-          <div className="border-b border-[#1E2430] bg-[#0E1117] px-3.5 py-2.5 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5">
+          {/* Panel Tab Navigation */}
+          <div className="border-b border-[#1E2430] bg-[#0E1117] px-3 py-2 flex items-center justify-between text-xs overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1">
               {[
-                { id: 'all', label: 'All Panels' },
-                { id: 'ml', label: 'ML Direction' },
+                { id: 'signal', label: '🎯 Sinyal Beli/Jual' },
+                { id: 'sentiment', label: '💬 Sentimen Pasar' },
+                { id: 'overview', label: '📊 Fundamental CMC' },
+                { id: 'ml', label: 'ML Barrier' },
                 { id: 'shap', label: 'SHAP Drivers' },
                 { id: 'onchain', label: 'On-Chain Rug' },
+                { id: 'all', label: 'Semua' },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as PanelTab)}
-                  className={`px-3 py-1 rounded text-[11px] font-medium transition-colors ${
+                  className={`px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-colors ${
                     activeTab === tab.id
-                      ? 'bg-[#1E2430] text-white font-semibold border border-[#38BDF8]/40 shadow-sm'
+                      ? 'bg-[#1E2430] text-white font-bold border border-[#00E676]/40 shadow-sm'
                       : 'text-[#8B949E] hover:text-[#F0F2F5] hover:bg-[#151922]'
                   }`}
                 >
@@ -449,23 +477,54 @@ function QuantTerminalContent() {
                 </button>
               ))}
             </div>
-
-            <span className="text-[10px] text-[#38BDF8] font-mono px-2 py-0.5 rounded bg-[#38BDF8]/10 border border-[#38BDF8]/20">
-              Engine A & B Active
-            </span>
           </div>
 
           {/* Panel Content (Smooth Scrollable) */}
           <div className="flex-1 overflow-y-auto scrollbar-hide divide-y divide-[#1E2430]">
-            {(activeTab === 'all' || activeTab === 'ml') && (
+            {/* Rekomendasi Beli & Jual */}
+            {(activeTab === 'signal' || activeTab === 'all') && (
+              <TradingSignalCard
+                currentPrice={latest?.close || livePrice}
+                atrValue={directional.barriers.atrValue}
+                symbol={tokenData?.symbol || 'SOL'}
+                bullishProb={directional.bullishProbability}
+              />
+            )}
+
+            {/* Data Sentimen Pasar Solana (CMC Social Insights) */}
+            {(activeTab === 'sentiment' || activeTab === 'all') && (
+              <MarketSentimentCard
+                symbol={tokenData?.symbol || 'SOL'}
+                price={latest?.close || livePrice}
+              />
+            )}
+
+            {/* Fundamental & Ringkasan Pasar CMC */}
+            {(activeTab === 'overview' || activeTab === 'all') && (
+              <TokenOverviewCard
+                symbol={tokenData?.symbol || 'SOL'}
+                name={tokenData?.name || 'Solana'}
+                price={latest?.close || livePrice}
+                change24h={tokenData?.change24h || -1.68}
+                address={address}
+                volume24h={tokenData?.volume24h}
+                liquidity={tokenData?.liquidity}
+                fdv={tokenData?.fdv}
+              />
+            )}
+
+            {/* ML Probability & Barriers */}
+            {(activeTab === 'ml' || activeTab === 'all') && (
               <MlProbabilityCard data={directional} />
             )}
 
-            {(activeTab === 'all' || activeTab === 'shap') && (
+            {/* SHAP Drivers */}
+            {(activeTab === 'shap' || activeTab === 'all') && (
               <ShapExplainCard drivers={directional.shapDrivers} />
             )}
 
-            {(activeTab === 'all' || activeTab === 'onchain') && (
+            {/* On-Chain Survival Matrix */}
+            {(activeTab === 'onchain' || activeTab === 'all') && (
               <OnChainSurvivalCard data={onchainSurvival} />
             )}
           </div>
